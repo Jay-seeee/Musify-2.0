@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Musify — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #2e3248;
+      --accent:  #7c83ff;
+      --accent2: #ff6b9d;
+      --border:  rgba(255,255,255,0.10);
+      --text:    #ffffff;
+      --muted:   rgba(255,255,255,0.50);
+      --error:   #ff5e7a;
+      --success: #4fffb0;
+      --font-d:  'Bebas Neue', sans-serif;
+      --font-b:  'Nunito', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font-b);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .bg-orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(80px); opacity: 0.18;
+      pointer-events: none;
+      animation: orbFloat 12s ease-in-out infinite;
+    }
+    .bg-orb-1 { width:500px;height:500px;background:var(--accent);top:-120px;left:-100px;animation-delay:0s; }
+    .bg-orb-2 { width:400px;height:400px;background:var(--accent2);bottom:-100px;right:-80px;animation-delay:-5s; }
+    .bg-orb-3 { width:300px;height:300px;background:#4fc3f7;top:40%;left:40%;animation-delay:-9s;opacity:.10; }
+    @keyframes orbFloat {
+      0%,100%{ transform:translate(0,0) scale(1); }
+      33%    { transform:translate(30px,-30px) scale(1.05); }
+      66%    { transform:translate(-20px,20px) scale(.96); }
+    }
+    body::before {
+      content:''; position:fixed; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity:.025; pointer-events:none; z-index:0;
+    }
+    .auth-card {
+      position:relative; z-index:1;
+      width:420px; max-width:calc(100vw - 32px);
+      background:rgba(255,255,255,0.055);
+      border:1px solid var(--border);
+      border-radius:28px; padding:40px 36px 36px;
+      backdrop-filter:blur(24px);
+      -webkit-backdrop-filter:blur(24px);
+      box-shadow:0 24px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06) inset;
+      animation:cardIn .55s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes cardIn {
+      from{opacity:0;transform:translateY(32px) scale(.97);}
+      to  {opacity:1;transform:translateY(0) scale(1);}
+    }
+    .auth-logo {
+      font-family:var(--font-d); font-size:52px; font-style:italic;
+      letter-spacing:.05em; text-align:center; margin-bottom:4px;
+      background:linear-gradient(135deg,#fff 0%,var(--accent) 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; user-select:none;
+    }
+    .auth-tagline {
+      text-align:center; font-size:12px; color:var(--muted);
+      font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+      margin-bottom:32px;
+    }
+    .auth-tabs {
+      display:flex; background:rgba(255,255,255,.07);
+      border-radius:999px; padding:4px; margin-bottom:28px; gap:4px;
+    }
+    .auth-tab {
+      flex:1; padding:9px 0; border-radius:999px;
+      font-family:var(--font-b); font-size:13px; font-weight:800;
+      cursor:pointer; border:none; background:none; color:var(--muted);
+      transition:background .2s,color .2s,box-shadow .2s; letter-spacing:.02em;
+    }
+    .auth-tab.active {
+      background:var(--accent); color:#fff;
+      box-shadow:0 4px 16px rgba(124,131,255,.40);
+    }
+    .auth-panel { display:none; animation:panelIn .3s ease both; }
+    .auth-panel.active { display:block; }
+    @keyframes panelIn {
+      from{opacity:0;transform:translateX(10px);}
+      to  {opacity:1;transform:translateX(0);}
+    }
+    .field { margin-bottom:16px; }
+    .field label {
+      display:block; font-size:11px; font-weight:800;
+      letter-spacing:.10em; text-transform:uppercase;
+      color:var(--muted); margin-bottom:7px;
+    }
+    .field input {
+      width:100%; background:rgba(255,255,255,.08);
+      border:1.5px solid rgba(255,255,255,.12); border-radius:12px;
+      padding:12px 16px; color:var(--text);
+      font-family:var(--font-b); font-size:14px; font-weight:600;
+      outline:none; transition:border-color .2s,box-shadow .2s,background .2s;
+    }
+    .field input::placeholder { color:rgba(255,255,255,.28); }
+    .field input:focus {
+      border-color:var(--accent); background:rgba(124,131,255,.08);
+      box-shadow:0 0 0 3px rgba(124,131,255,.18);
+    }
+    .field input.error {
+      border-color:var(--error); box-shadow:0 0 0 3px rgba(255,94,122,.18);
+    }
+    .auth-btn {
+      width:100%; padding:14px; border-radius:999px; border:none;
+      background:linear-gradient(135deg,var(--accent) 0%,#9b6fff 100%);
+      color:#fff; font-family:var(--font-b); font-size:15px; font-weight:800;
+      cursor:pointer; margin-top:8px; letter-spacing:.03em;
+      box-shadow:0 8px 28px rgba(124,131,255,.38);
+      transition:transform .15s,box-shadow .15s,opacity .15s;
+      position:relative; overflow:hidden;
+    }
+    .auth-btn:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(124,131,255,.50); }
+    .auth-btn:active { transform:translateY(0); }
+    .auth-msg {
+      margin-top:14px; font-size:13px; font-weight:700;
+      text-align:center; min-height:20px;
+    }
+    .auth-msg.error   { color:var(--error); }
+    .auth-msg.success { color:var(--success); }
+    .pw-strength { display:flex; gap:4px; margin-top:8px; }
+    .pw-bar {
+      flex:1; height:3px; border-radius:2px;
+      background:rgba(255,255,255,.12); transition:background .3s;
+    }
+    .pw-bar.weak   { background:#ff5e7a; }
+    .pw-bar.medium { background:#ffd166; }
+    .pw-bar.strong { background:var(--success); }
+    .pw-label {
+      font-size:11px; color:var(--muted); font-weight:700;
+      margin-top:4px; min-height:16px; transition:color .3s;
+    }
+    .auth-footer {
+      text-align:center; margin-top:24px; font-size:11px;
+      color:rgba(255,255,255,.22); font-weight:600;
+    }
+    @keyframes spin { to{transform:rotate(360deg);} }
+    .spinner {
+      display:inline-block; width:16px; height:16px;
+      border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
+      border-radius:50%; animation:spin .7s linear infinite;
+      vertical-align:middle; margin-right:6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <div class="auth-card">
+    <div class="auth-logo">MUSIFY</div>
+    <p class="auth-tagline">Your music, your world</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabSignIn" onclick="switchTab('signin')">Sign In</button>
+      <button class="auth-tab"        id="tabSignUp" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- SIGN IN -->
+    <div class="auth-panel active" id="panelSignin">
+      <div class="field">
+        <label for="siUsername">Username</label>
+        <input type="text" id="siUsername" placeholder="Enter your username" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="siPassword">Password</label>
+        <input type="password" id="siPassword" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="signinBtn" onclick="handleSignIn()">Sign In</button>
+      <p class="auth-msg" id="siMsg"></p>
+    </div>
+
+    <!-- CREATE ACCOUNT -->
+    <div class="auth-panel" id="panelSignup">
+      <div class="field">
+        <label for="suUsername">Username</label>
+        <input type="text" id="suUsername" placeholder="Choose a username" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="suPassword">Password</label>
+        <input type="password" id="suPassword" placeholder="Create a password" autocomplete="new-password" oninput="checkStrength(this.value)">
+        <div class="pw-strength">
+          <div class="pw-bar" id="bar1"></div>
+          <div class="pw-bar" id="bar2"></div>
+          <div class="pw-bar" id="bar3"></div>
+        </div>
+        <p class="pw-label" id="pwLabel"></p>
+      </div>
+      <div class="field">
+        <label for="suConfirm">Confirm Password</label>
+        <input type="password" id="suConfirm" placeholder="Repeat your password" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" id="signupBtn" onclick="handleSignUp()">Create Account</button>
+      <p class="auth-msg" id="suMsg"></p>
+    </div>
+
+    <p class="auth-footer">Your data is saved locally on this device.</p>
+  </div>
+
+  <script>
+    // Already logged in? Go straight to app
+    if (localStorage.getItem('musify_session')) {
+      window.location.replace('index.html');
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabSignIn').classList.toggle('active', tab === 'signin');
+      document.getElementById('tabSignUp').classList.toggle('active', tab === 'signup');
+      document.getElementById('panelSignin').classList.toggle('active', tab === 'signin');
+      document.getElementById('panelSignup').classList.toggle('active', tab === 'signup');
+      clearMsgs();
+    }
+    function clearMsgs() {
+      ['siMsg','suMsg'].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = ''; el.className = 'auth-msg';
+      });
+      ['siUsername','siPassword','suUsername','suPassword','suConfirm'].forEach(id =>
+        document.getElementById(id).classList.remove('error')
+      );
+    }
+    function setMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text; el.className = 'auth-msg ' + type;
+    }
+    function checkStrength(pw) {
+      const bars  = ['bar1','bar2','bar3'].map(id => document.getElementById(id));
+      const label = document.getElementById('pwLabel');
+      bars.forEach(b => b.className = 'pw-bar');
+      if (!pw) { label.textContent = ''; return; }
+      let score = 0;
+      if (pw.length >= 6)  score++;
+      if (pw.length >= 10) score++;
+      if (/[^a-zA-Z0-9]/.test(pw) || /[0-9]/.test(pw)) score++;
+      const classMap = ['weak','medium','strong'];
+      const labelMap = ['Weak','Medium','Strong 💪'];
+      const colorMap = ['#ff5e7a','#ffd166','#4fffb0'];
+      for (let i = 0; i < score; i++) bars[i].classList.add(classMap[score - 1]);
+      label.textContent = labelMap[score - 1] || '';
+      label.style.color = colorMap[score - 1] || '';
+    }
+    function getAccounts() { return JSON.parse(localStorage.getItem('musify_accounts') || '{}'); }
+    function saveAccounts(a) { localStorage.setItem('musify_accounts', JSON.stringify(a)); }
+    function setSession(u) { localStorage.setItem('musify_session', u); }
+
+    function handleSignIn() {
+      clearMsgs();
+      const username = document.getElementById('siUsername').value.trim();
+      const password = document.getElementById('siPassword').value;
+      if (!username) { document.getElementById('siUsername').classList.add('error'); setMsg('siMsg','Please enter your username.','error'); return; }
+      if (!password) { document.getElementById('siPassword').classList.add('error'); setMsg('siMsg','Please enter your password.','error'); return; }
+      const accounts = getAccounts();
+      if (!accounts[username]) { document.getElementById('siUsername').classList.add('error'); setMsg('siMsg','No account found with that username.','error'); return; }
+      if (accounts[username].password !== btoa(password)) { document.getElementById('siPassword').classList.add('error'); setMsg('siMsg','Incorrect password.','error'); return; }
+      setMsg('siMsg','✅ Welcome back, ' + username + '!','success');
+      setSession(username);
+      const btn = document.getElementById('signinBtn');
+      btn.innerHTML = '<span class="spinner"></span> Signing in…';
+      btn.style.opacity = '0.8';
+      setTimeout(() => window.location.replace('index.html'), 800);
+    }
+
+    function handleSignUp() {
+      clearMsgs();
+      const username = document.getElementById('suUsername').value.trim();
+      const password = document.getElementById('suPassword').value;
+      const confirm  = document.getElementById('suConfirm').value;
+      if (!username)          { document.getElementById('suUsername').classList.add('error'); setMsg('suMsg','Please choose a username.','error'); return; }
+      if (username.length < 3){ document.getElementById('suUsername').classList.add('error'); setMsg('suMsg','Username must be at least 3 characters.','error'); return; }
+      if (!password)          { document.getElementById('suPassword').classList.add('error'); setMsg('suMsg','Please create a password.','error'); return; }
+      if (password.length < 6){ document.getElementById('suPassword').classList.add('error'); setMsg('suMsg','Password must be at least 6 characters.','error'); return; }
+      if (password !== confirm){ document.getElementById('suConfirm').classList.add('error'); setMsg('suMsg','Passwords do not match.','error'); return; }
+      const accounts = getAccounts();
+      if (accounts[username]) { document.getElementById('suUsername').classList.add('error'); setMsg('suMsg','Username already taken. Try another.','error'); return; }
+      accounts[username] = {
+        password: btoa(password),
+        data: { favorites:[0], queue:[], albums:[], currentIndex:0 }
+      };
+      saveAccounts(accounts);
+      setSession(username);
+      setMsg('suMsg','🎵 Account created! Loading Musify…','success');
+      const btn = document.getElementById('signupBtn');
+      btn.innerHTML = '<span class="spinner"></span> Creating…';
+      btn.style.opacity = '0.8';
+      setTimeout(() => window.location.replace('index.html'), 900);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const signinActive = document.getElementById('panelSignin').classList.contains('active');
+      if (signinActive) handleSignIn(); else handleSignUp();
+    });
+  </script>
+</body>
+</html>
