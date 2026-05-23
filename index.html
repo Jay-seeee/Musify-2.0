@@ -450,10 +450,53 @@
           </div>
         </section>
 
-      </div>
-    </main>
+      </div><!-- end content-scroll -->
 
-    <!-- PLAYER PANEL -->
+      <!-- ── MINI PLAYER (tablet & mobile) ── -->
+      <div class="mini-player" id="miniPlayer">
+        <div class="mini-player__art">
+          <img id="miniArt" src="images/Pa-umaga.jpg" alt="Now playing">
+        </div>
+        <div class="mini-player__info">
+          <p class="mini-player__song" id="miniSong">Pa-umaga</p>
+          <p class="mini-player__artist" id="miniArtist">Al James</p>
+        </div>
+        <div class="mini-player__controls">
+          <button class="mini-ctrl" id="miniPrevBtn" aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </button>
+          <button class="mini-ctrl play-main-mini" id="miniPlayPauseBtn" aria-label="Play/Pause">
+            <svg class="mini-icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg class="mini-icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          <button class="mini-ctrl" id="miniNextBtn" aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2-8.14 5.21 3.64L8 16.86V9.86zM16 6h2v12h-2z"/></svg>
+          </button>
+        </div>
+        <div class="mini-player__progress-bar">
+          <div class="mini-player__progress-fill" id="miniProgressFill"></div>
+        </div>
+      </div>
+
+      <!-- ── BOTTOM NAV (mobile only) ── -->
+      <nav class="bottom-nav" id="bottomNav">
+        <button class="bottom-nav__item active" data-section="playlist">
+          <span class="bn-icon">🎵</span>Playlist
+        </button>
+        <button class="bottom-nav__item" data-section="favorites">
+          <span class="bn-icon">❤️</span>Favorites
+        </button>
+        <button class="bottom-nav__item" data-section="queue">
+          <span class="bn-icon">📃</span>Queue
+        </button>
+        <button class="bottom-nav__item" data-section="albums">
+          <span class="bn-icon">💿</span>Albums
+        </button>
+      </nav>
+
+    </main><!-- end .main -->
+
+    <!-- PLAYER PANEL (desktop only) -->
     <aside class="player-panel">
       <div class="player__artwork-wrap">
         <img id="playerArt" src="images/Pa-umaga.jpg" alt="Album Art">
@@ -512,7 +555,7 @@
       </div>
     </aside>
 
-  </div>
+  </div><!-- end .app -->
 
   <script src="app.js"></script>
 </body>
