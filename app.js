@@ -1,21 +1,10 @@
-/* ══════════════════════════════════════════════════════
-   MUSIFY — app.js  (fully integrated)
-   • Session guard → redirects to auth.html if not logged in
-   • Persists favorites, queue, albums, currentIndex per-user
-   • Search dropdown (no card filtering)
-   • Spacebar blocked when typing in any input
-   • Album cover photo upload
-   • Logout button clears session
-   ══════════════════════════════════════════════════════ */
-
-// ── 1. SESSION GUARD ──────────────────────────────────
 const currentUser = localStorage.getItem('musify_session');
 if (!currentUser) {
   window.location.replace('auth.html');
   throw new Error('Not authenticated');
 }
-
-// ── 2. PERSISTENCE HELPERS ───────────────────────────
+ 
+// ── 2. PERSISTENCE HELPERS
 function getAccounts() {
   return JSON.parse(localStorage.getItem('musify_accounts') || '{}');
 }
@@ -41,8 +30,8 @@ function persistState() {
   };
   saveAccounts(accounts);
 }
-
-// ── 3. SONGS ──────────────────────────────────────────
+ 
+// ── 3. SONGS
 const SONGS = [
   { title: 'Pa-umaga',            artist: 'Al James',                        img: 'images/Pa-umaga.jpg',           audio: 'audio/Pa-umaga.mp3' },
   { title: 'PSG',                 artist: 'Al James',                        img: 'images/PSG.jpg',                audio: 'audio/PSG.mp3' },
@@ -76,13 +65,12 @@ const SONGS = [
   { title: 'We Dont Talk Anymore',artist: 'Charlie Puth, Selena Gomez',      img: 'images/We Dont Talk Anymore.jpg', audio: 'audio/We Dont Talk Anymore.mp3' },
   { title: 'Kunan Mong Pic',      artist: 'O SIDE MAFIA, BRGR ft. Al James', img: 'images/kunan mo pic.jpg',      audio: 'audio/kunan mo pic.mp3' },
 ];
-
-// ── 4. LOAD SAVED DATA ────────────────────────────────
+ 
 const saved = getUserData();
-
+ 
 const audioPlayer = new Audio();
 audioPlayer.volume = 0.7;
-
+ 
 const favorites = new Set(saved.favorites ?? [0]);
 const queue     = [...(saved.queue ?? [])];
 const albums    = (saved.albums ?? []).map(a => ({
@@ -90,7 +78,7 @@ const albums    = (saved.albums ?? []).map(a => ({
   cover: a.cover || null,
   songs: new Set(a.songs ?? []),
 }));
-
+ 
 const state = {
   currentIndex: saved.currentIndex ?? 0,
   isPlaying:    false,
@@ -101,11 +89,10 @@ const state = {
   totalTime:    0,
   currentView:  'playlist',
 };
-
-// ── 5. DOM REFS ───────────────────────────────────────
+ 
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-
+ 
 const playerPanel   = $('.player-panel');
 const playerArt     = $('#playerArt');
 const playerSong    = $('#playerSong');
@@ -124,17 +111,31 @@ const totalTimeEl   = $('#totalTime');
 const searchInput   = $('#searchInput');
 const navLinks      = $$('.nav-link');
 const volumeSlider  = $('#volumeSlider');
-
+ 
 const playlistSection  = $('#playlistSection');
 const favoritesSection = $('#favoritesSection');
 const queueSection     = $('#queueSection');
 const favoritesGrid    = $('#favoritesGrid');
 const queueGrid        = $('#queueGrid');
-
+ 
+// ── MINI PLAYER elements
+const miniPlayer       = $('#miniPlayer');
+const miniArt          = $('#miniArt');
+const miniSong         = $('#miniSong');
+const miniArtist       = $('#miniArtist');
+const miniProgressFill = $('#miniProgressFill');
+const miniPlayPauseBtn = $('#miniPlayPauseBtn');
+const miniPrevBtn      = $('#miniPrevBtn');
+const miniNextBtn      = $('#miniNextBtn');
+ 
+// ── BOTTOM NAV elements
+const bottomNav      = $('#bottomNav');
+const bottomNavItems = $$('.bottom-nav__item');
+ 
 // ── 6. USERNAME + LOGOUT ──────────────────────────────
 const sidebarUsername = $('#sidebarUsername');
 if (sidebarUsername) sidebarUsername.textContent = currentUser.toUpperCase();
-
+ 
 const logoutBtn = $('#logoutBtn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
@@ -143,25 +144,25 @@ if (logoutBtn) {
     window.location.replace('auth.html');
   });
 }
-
+ 
 // ── 7. SEARCH DROPDOWN ───────────────────────────────
 const searchWrapper     = $('#searchWrapper');
 const searchDropdown    = $('#searchDropdown');
 const searchResultsList = $('#searchResultsList');
-
+ 
 function renderSearchDropdown(query) {
   const q = query.trim().toLowerCase();
   if (!q) { searchDropdown.classList.remove('visible'); return; }
-
+ 
   const matches = SONGS
     .map((song, idx) => ({ song, idx }))
     .filter(({ song }) =>
       song.title.toLowerCase().includes(q) ||
       song.artist.toLowerCase().includes(q)
     );
-
+ 
   searchResultsList.innerHTML = '';
-
+ 
   if (matches.length === 0) {
     searchResultsList.innerHTML = `<div class="search-no-results">No results for "<strong>${query}</strong>"</div>`;
   } else {
@@ -189,19 +190,19 @@ function renderSearchDropdown(query) {
   }
   searchDropdown.classList.add('visible');
 }
-
+ 
 function closeSearchDropdown() {
   searchDropdown.classList.remove('visible');
   searchInput.value = '';
 }
-
+ 
 searchInput.addEventListener('input', () => renderSearchDropdown(searchInput.value));
-
+ 
 document.addEventListener('click', (e) => {
   if (!searchWrapper.contains(e.target)) searchDropdown.classList.remove('visible');
 });
 searchWrapper.addEventListener('click', (e) => e.stopPropagation());
-
+ 
 searchInput.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { closeSearchDropdown(); searchInput.blur(); }
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -220,12 +221,12 @@ searchInput.addEventListener('keydown', (e) => {
     if (first) first.click();
   }
 });
-
+ 
 // ── 8. ALBUM COVER UPLOAD ────────────────────────────
 let pendingAlbumCover   = null;
 const albumCoverPreview = $('#albumCoverPreview');
 const albumCoverInput   = $('#albumCoverInput');
-
+ 
 albumCoverPreview.addEventListener('click', () => albumCoverInput.click());
 albumCoverInput.addEventListener('change', () => {
   const file = albumCoverInput.files[0];
@@ -237,7 +238,7 @@ albumCoverInput.addEventListener('change', () => {
   };
   reader.readAsDataURL(file);
 });
-
+ 
 // ── 9. ALBUMS ─────────────────────────────────────────
 const albumsSection    = $('#albumsSection');
 const albumsList       = $('#albumsList');
@@ -246,26 +247,25 @@ const albumDetailGrid  = $('#albumDetailGrid');
 const albumDetailTitle = $('#albumDetailTitle');
 const albumDetailCover = $('#albumDetailCover');
 const newAlbumInput    = $('#newAlbumInput');
-
+ 
 let openAlbumIdx = null;
-
-// SPACEBAR FIX — block all shortcuts when typing in any input
+ 
 newAlbumInput.addEventListener('keydown', (e) => {
   e.stopPropagation();
   if (e.key === 'Enter') document.getElementById('createAlbumBtn').click();
 });
-
+ 
 function renderAlbumsList() {
   albumDetail.style.display = 'none';
   albumsList.style.display  = '';
   albumsList.innerHTML      = '';
   openAlbumIdx              = null;
-
+ 
   if (albums.length === 0) {
     albumsList.innerHTML = '<p class="empty-msg">No albums yet. Type a name above and hit + Create Album.</p>';
     return;
   }
-
+ 
   albums.forEach((album, idx) => {
     const card = document.createElement('div');
     card.className = 'album-row';
@@ -284,7 +284,7 @@ function renderAlbumsList() {
         <p class="album-row__name">${album.name}</p>
         <p class="album-row__count">${album.songs.size} song${album.songs.size !== 1 ? 's' : ''}</p>
       </div>`;
-
+ 
     card.addEventListener('click', (e) => {
       if (e.target.closest('.album-delete-btn')) return;
       openAlbum(idx);
@@ -299,7 +299,7 @@ function renderAlbumsList() {
     albumsList.appendChild(card);
   });
 }
-
+ 
 function openAlbum(idx) {
   openAlbumIdx = idx;
   const album  = albums[idx];
@@ -311,7 +311,7 @@ function openAlbum(idx) {
     : '🎵';
   renderAlbumDetail();
 }
-
+ 
 function renderAlbumDetail() {
   const album = albums[openAlbumIdx];
   albumDetailGrid.innerHTML = '';
@@ -332,7 +332,7 @@ function renderAlbumDetail() {
   });
   highlightActiveCard();
 }
-
+ 
 $('#createAlbumBtn').addEventListener('click', () => {
   const name = newAlbumInput.value.trim();
   if (!name) { showToast('⚠️ Enter an album name first'); return; }
@@ -345,9 +345,9 @@ $('#createAlbumBtn').addEventListener('click', () => {
   renderAlbumsList();
   showToast(`✅ Album "${name}" created`);
 });
-
+ 
 $('#backToAlbums').addEventListener('click', renderAlbumsList);
-
+ 
 $('#addToAlbumBtn').addEventListener('click', () => {
   const album = albums[openAlbumIdx];
   if (album.songs.has(state.currentIndex)) { showToast('⚠️ Already in this album'); return; }
@@ -356,7 +356,7 @@ $('#addToAlbumBtn').addEventListener('click', () => {
   renderAlbumDetail();
   showToast(`🎵 "${SONGS[state.currentIndex].title}" added to album`);
 });
-
+ 
 // ── 10. HELPERS ───────────────────────────────────────
 function fmtTime(secs) {
   if (!secs || isNaN(secs)) return '0:00';
@@ -364,7 +364,7 @@ function fmtTime(secs) {
   const s = Math.floor(secs % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
-
+ 
 function showToast(msg) {
   let toast = document.getElementById('musifyToast');
   if (!toast) {
@@ -377,9 +377,9 @@ function showToast(msg) {
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
-
+ 
 function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
-
+ 
 function buildShuffleOrder(currentIdx) {
   const indices = [...Array(SONGS.length).keys()].filter(i => i !== currentIdx);
   for (let i = indices.length - 1; i > 0; i--) {
@@ -388,7 +388,7 @@ function buildShuffleOrder(currentIdx) {
   }
   return [currentIdx, ...indices];
 }
-
+ 
 function buildCard(songIndex, opts = {}) {
   const song = SONGS[songIndex];
   const card = document.createElement('div');
@@ -406,7 +406,7 @@ function buildCard(songIndex, opts = {}) {
     </div>
     <p class="card__name">${song.title}</p>
     <p class="card__sub">${song.artist}</p>`;
-
+ 
   card.addEventListener('click', (e) => {
     if (e.target.closest('.card__remove')) return;
     if (state.currentIndex === songIndex && state.isPlaying) { togglePlayPause(); return; }
@@ -419,7 +419,7 @@ function buildCard(songIndex, opts = {}) {
   });
   return card;
 }
-
+ 
 function renderFavorites() {
   favoritesGrid.innerHTML = '';
   if (favorites.size === 0) {
@@ -440,7 +440,7 @@ function renderFavorites() {
   });
   highlightActiveCard();
 }
-
+ 
 function renderQueue() {
   queueGrid.innerHTML = '';
   if (queue.length === 0) {
@@ -464,7 +464,7 @@ function renderQueue() {
   });
   highlightActiveCard();
 }
-
+ 
 function showView(view) {
   state.currentView = view;
   playlistSection.style.display  = view === 'playlist'  ? '' : 'none';
@@ -476,8 +476,28 @@ function showView(view) {
   if (view === 'albums')    renderAlbumsList();
   closeSearchDropdown();
 }
-
+ 
 // ── 11. PLAYER CORE ───────────────────────────────────
+function syncMiniPlayer() {
+  const song = SONGS[state.currentIndex];
+  if (!song) return;
+  miniArt.src             = song.img;
+  miniSong.textContent    = song.title;
+  miniArtist.textContent  = song.artist;
+}
+ 
+function syncMiniPlayPauseIcon() {
+  const iconPlay  = miniPlayPauseBtn.querySelector('.mini-icon-play');
+  const iconPause = miniPlayPauseBtn.querySelector('.mini-icon-pause');
+  if (state.isPlaying) {
+    iconPlay.style.display  = 'none';
+    iconPause.style.display = '';
+  } else {
+    iconPlay.style.display  = '';
+    iconPause.style.display = 'none';
+  }
+}
+ 
 function loadSong(index) {
   const song = SONGS[index];
   if (!song) return;
@@ -489,6 +509,7 @@ function loadSong(index) {
   playerArtist.textContent  = song.artist;
   currentTimeEl.textContent = '0:00';
   syncLikeButton(index);
+  syncMiniPlayer();
   updateProgress();
   highlightActiveCard();
   audioPlayer.src = song.audio;
@@ -502,19 +523,21 @@ function loadSong(index) {
   requestAnimationFrame(() => { playerArt.style.opacity = '1'; });
   persistState();
 }
-
+ 
 function syncLikeButton(index) {
   const liked = favorites.has(index);
   likeBtn.classList.toggle('active', liked);
 }
-
+ 
 function updateProgress() {
   const pct = (state.progress * 100).toFixed(2) + '%';
   progressFill.style.width  = pct;
   progressThumb.style.left  = pct;
   currentTimeEl.textContent = fmtTime(state.progress * state.totalTime);
+  // also update mini player progress bar
+  miniProgressFill.style.width = pct;
 }
-
+ 
 audioPlayer.addEventListener('timeupdate', () => {
   if (!audioPlayer.duration) return;
   state.progress  = audioPlayer.currentTime / audioPlayer.duration;
@@ -522,17 +545,17 @@ audioPlayer.addEventListener('timeupdate', () => {
   totalTimeEl.textContent = fmtTime(audioPlayer.duration);
   updateProgress();
 });
-
+ 
 audioPlayer.addEventListener('ended', () => {
   if (state.isRepeat) { audioPlayer.currentTime = 0; audioPlayer.play(); }
   else playNext();
 });
-
+ 
 audioPlayer.addEventListener('error', () => showToast('⚠️ Audio file not found'));
-
+ 
 function startTicker() { audioPlayer.play().catch(() => showToast('⚠️ Click anywhere first')); }
 function stopTicker()  { audioPlayer.pause(); }
-
+ 
 function togglePlayPause() {
   state.isPlaying = !state.isPlaying;
   const iconPlay  = playPauseBtn.querySelector('.icon-play');
@@ -550,8 +573,9 @@ function togglePlayPause() {
     playerPanel.classList.remove('is-playing');
     stopTicker();
   }
+  syncMiniPlayPauseIcon();
 }
-
+ 
 function playNext() {
   let nextIdx;
   if (queue.length > 0) {
@@ -567,7 +591,7 @@ function playNext() {
   loadSong(nextIdx);
   if (state.isPlaying) startTicker();
 }
-
+ 
 function playPrev() {
   if (audioPlayer.currentTime > 3) { audioPlayer.currentTime = 0; return; }
   let prevIdx;
@@ -580,7 +604,7 @@ function playPrev() {
   loadSong(prevIdx);
   if (state.isPlaying) startTicker();
 }
-
+ 
 function highlightActiveCard() {
   document.querySelectorAll('.music-card').forEach((card) => {
     const idx = parseInt(card.dataset.songIndex ?? card.dataset.index ?? -1);
@@ -590,7 +614,7 @@ function highlightActiveCard() {
     card.classList.toggle('active', i === state.currentIndex);
   });
 }
-
+ 
 function seekProgress(e) {
   const rect     = progressBar.getBoundingClientRect();
   const x        = clamp(e.clientX - rect.left, 0, rect.width);
@@ -599,7 +623,7 @@ function seekProgress(e) {
   if (audioPlayer.duration) audioPlayer.currentTime = fraction * audioPlayer.duration;
   updateProgress();
 }
-
+ 
 // ── 12. EVENT LISTENERS ───────────────────────────────
 $$('#artistGrid .music-card').forEach((card, index) => {
   card.dataset.index = index;
@@ -613,17 +637,18 @@ $$('#artistGrid .music-card').forEach((card, index) => {
     e.stopPropagation(); card.click();
   });
 });
-
+ 
+// Desktop player controls
 playPauseBtn.addEventListener('click', togglePlayPause);
 nextBtn.addEventListener('click', playNext);
 prevBtn.addEventListener('click', playPrev);
-
+ 
 repeatBtn.addEventListener('click', () => {
   state.isRepeat = !state.isRepeat;
   repeatBtn.classList.toggle('active', state.isRepeat);
   showToast(state.isRepeat ? '🔁 Repeat on' : '🔁 Repeat off');
 });
-
+ 
 shuffleBtn.addEventListener('click', () => {
   state.isShuffled = !state.isShuffled;
   shuffleBtn.classList.toggle('active', state.isShuffled);
@@ -635,7 +660,7 @@ shuffleBtn.addEventListener('click', () => {
     showToast('🔀 Shuffle off');
   }
 });
-
+ 
 likeBtn.addEventListener('click', () => {
   const liked = favorites.has(state.currentIndex);
   if (liked) {
@@ -650,7 +675,7 @@ likeBtn.addEventListener('click', () => {
   persistState();
   if (state.currentView === 'favorites') renderFavorites();
 });
-
+ 
 $('#menuBtn').addEventListener('click', () => {
   const idx = state.currentIndex;
   if (queue.includes(idx)) { showToast('⚠️ Already in Queue'); return; }
@@ -659,26 +684,47 @@ $('#menuBtn').addEventListener('click', () => {
   showToast(`📃 "${SONGS[idx].title}" added to Queue`);
   if (state.currentView === 'queue') renderQueue();
 });
-
+ 
 volumeSlider.addEventListener('input', () => {
   audioPlayer.volume = volumeSlider.value / 100;
 });
-
+ 
 let isDragging = false;
 progressBar.addEventListener('mousedown', (e) => { isDragging = true; seekProgress(e); stopTicker(); });
 document.addEventListener('mousemove',    (e) => { if (isDragging) seekProgress(e); });
 document.addEventListener('mouseup',      ()  => { if (isDragging) { isDragging = false; if (state.isPlaying) startTicker(); } });
-
+ 
+// Sidebar nav links (desktop + tablet)
 navLinks.forEach((link) => {
-  if (!link.dataset.section) return; // skip logout btn
+  if (!link.dataset.section) return;
   link.addEventListener('click', (e) => {
     e.preventDefault();
     navLinks.forEach((l) => l.classList.remove('active'));
     link.classList.add('active');
+    // sync bottom nav too
+    bottomNavItems.forEach(b => b.classList.toggle('active', b.dataset.section === link.dataset.section));
     showView(link.dataset.section);
   });
 });
-
+ 
+// ── MINI PLAYER controls (tablet + mobile)
+miniPlayPauseBtn.addEventListener('click', togglePlayPause);
+miniPrevBtn.addEventListener('click', playPrev);
+miniNextBtn.addEventListener('click', playNext);
+ 
+// ── BOTTOM NAV (mobile)
+bottomNavItems.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    bottomNavItems.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // sync sidebar nav links
+    navLinks.forEach(l => {
+      if (l.dataset.section) l.classList.toggle('active', l.dataset.section === btn.dataset.section);
+    });
+    showView(btn.dataset.section);
+  });
+});
+ 
 // Global keyboard shortcuts — blocked when any input is focused
 document.addEventListener('keydown', (e) => {
   const active = document.activeElement;
@@ -692,11 +738,13 @@ document.addEventListener('keydown', (e) => {
     case 'KeyS':       shuffleBtn.click();                    break;
   }
 });
-
+ 
 // ── 13. INIT ──────────────────────────────────────────
 (function init() {
   loadSong(state.currentIndex);
   syncLikeButton(state.currentIndex);
+  syncMiniPlayer();
+  syncMiniPlayPauseIcon();
   highlightActiveCard();
   showView('playlist');
   console.info(`%c🎵 Musify — Welcome back, ${currentUser}!`, 'color:#7c83ff;font-weight:bold;');
