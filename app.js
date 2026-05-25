@@ -400,7 +400,7 @@ function buildCard(songIndex, opts = {}) {
 function renderFavorites() {
   favoritesGrid.innerHTML = '';
   if (favorites.size === 0) {
-    favoritesGrid.innerHTML = '<p class="empty-msg">No favorites yet. Click ❤️ to add songs!</p>';
+    favoritesGrid.innerHTML = '<p class="empty-msg">No favorites yet. Click 🖤 to add songs!</p>';
     return;
   }
   favorites.forEach((idx) => {
@@ -658,7 +658,7 @@ shuffleBtn.addEventListener('click', () => {
 likeBtn.addEventListener('click', () => {
   const liked = favorites.has(state.currentIndex);
   if (liked) { favorites.delete(state.currentIndex); likeBtn.classList.remove('active'); showToast('💔 Removed from Favorites'); }
-  else { favorites.add(state.currentIndex); likeBtn.classList.add('active'); showToast('❤️ Added to Favorites'); }
+  else { favorites.add(state.currentIndex); likeBtn.classList.add('active'); showToast('🖤 Added to Favorites'); }
   syncModalLike();
   persistState();
   if (state.currentView === 'favorites') renderFavorites();
@@ -669,7 +669,7 @@ $('#menuBtn').addEventListener('click', () => {
   if (queue.includes(idx)) { showToast('⚠️ Already in Queue'); return; }
   queue.push(idx);
   persistState();
-  showToast(`📃 "${SONGS[idx].title}" added to Queue`);
+  showToast(`☰ "${SONGS[idx].title}" added to Queue`);
   if (state.currentView === 'queue') renderQueue();
 });
 
@@ -754,7 +754,7 @@ modalShuffleBtn.addEventListener('click', () => {
 modalLikeBtn.addEventListener('click', () => {
   const liked = favorites.has(state.currentIndex);
   if (liked) { favorites.delete(state.currentIndex); showToast('💔 Removed from Favorites'); }
-  else { favorites.add(state.currentIndex); showToast('❤️ Added to Favorites'); }
+  else { favorites.add(state.currentIndex); showToast('🖤 Added to Favorites'); }
   syncLikeButton(state.currentIndex);
   syncModalLike();
   persistState();
@@ -766,7 +766,7 @@ modalMenuBtn.addEventListener('click', () => {
   if (queue.includes(idx)) { showToast('⚠️ Already in Queue'); return; }
   queue.push(idx);
   persistState();
-  showToast(`📃 "${SONGS[idx].title}" added to Queue`);
+  showToast(`☰ "${SONGS[idx].title}" added to Queue`);
   if (state.currentView === 'queue') renderQueue();
 });
 
